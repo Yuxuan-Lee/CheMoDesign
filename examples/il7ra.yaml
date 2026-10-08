@@ -1,0 +1,50 @@
+version: 1
+
+sequences:
+  - protein:
+      id: A
+      sequence: "DYSFSCYSQLEVNGSQHSLTCAFEDPDVNITNLEFEICGALVEVKCLNFRKLQEIYFIETKKFLLIGKSNICVKVGEKSLTCKKIDLTTIVKPEAPFDLSVVYREGANDFVVTFNTSHLQKKYVKVLMHDVAYRQEKDENKWTHVNLSSTKLTLLQRKLQPAAMYEIKVRSIPDHYFKGFWSEWSPSYYFRTPEIN"
+      msa: "msa/il7ra.a3m"
+  
+  - protein:
+      id: B
+      sequence: "AEAKYAKEMIFAVGEIYNLPNLTHGQIMAFIAALKDDPSQSSELLSEAKKLNDSQAPKAEAKYAKEAVGEIYNLGAAEFK"
+
+#templates:
+#  - cif: "./examples/il7ra.cif" 
+#    chain_id: [A]             
+#    template_id: [A]          
+#    force: true               
+#    threshold: 3.0            
+
+dream:
+  receptor_chains: [A]
+  binder_chains: [B]
+  design_type: "binder"
+  
+  creativity: 0.9
+  num_design_rounds: 10
+  samples_per_round: 10
+  
+  hotspot_indices: [65, 123]
+  
+  protected_regions: {}
+  # protected_regions:
+  #   protected_modifications: []
+  #   protected_ligands: []
+  #   protected_residues: []
+  
+  losses:
+    rg_loss:
+      enabled: true
+      weight: 1.0
+    helix_loss:
+      enabled: true
+      weight: 0.01
+    hotspot_loss:
+      enabled: true
+      weight: 2.0
+
+  
+  output:
+    dir: "./paper_test_output/il7ra"

@@ -1,0 +1,51 @@
+version: 1
+
+sequences:
+  - protein:
+      id: B
+      sequence: "VDNKFNKELSVAGREIVTLPNLNDPQKKAFIFSLWDDPSQSANLLAEAKKLNDAQAPK"
+      msa: "msa/zspa1.a3m"
+  
+  - protein:
+      id: A
+      sequence: "KEQQNAFGEVLHLPNEEQRNAFIQSLKDDPSQSANLLAEAKKLND"
+  
+  - ligand:
+      id: C
+      ccd: "BPUAA"
+
+constraints:
+  - bond:
+      atom1: [A, 8, CA]
+      atom2: [C, 1, C6]
+
+dream:
+  receptor_chains: [B]
+  binder_chains: [A]
+  design_type: "binder"
+  
+  creativity: 0.97
+  num_design_rounds: 100
+  samples_per_round: 20
+  
+  hotspot_indices: [35, 31]
+  
+  protected_regions:
+    protected_ligands: ["BPUAA"]
+  
+  losses:
+    rg_loss:
+      enabled: true
+      weight: 1.0
+    helix_loss:
+      enabled: true
+      weight: 0.5
+    hotspot_loss:
+      enabled: true
+      weight: 1.0
+  
+  msa:
+    max_seqs: 2560
+  
+  output:
+    dir: "./output/BPA_designs_new_8"

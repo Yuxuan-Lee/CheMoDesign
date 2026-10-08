@@ -1,0 +1,56 @@
+version: 1
+
+sequences:
+  - protein:
+      id: A
+      sequence: "AFTVTVPKDLYVVEYGSNMTIECKFPVEKQLDLAALIVYWEMEDKNIIQFVHGEEDLGVQHSSYRQRARLLKDQLSLGNAALQITDVKLQDAGVYRCMISYGGADYKRITVKVN"
+      msa: "msa/pd_l1_cmn.a3m"
+
+  - protein:
+      id: B
+      sequence: "AEAKYAKEMIFAVGEIYNLPNLTHGQAPKAEAKYAKEAVGEIYNLGAAEFKIMAFIAALKDDPSQSSELLSEAKKLNDSQ"
+
+
+dream:
+  receptor_chains: [A]
+  binder_chains: [B]
+  design_type: "binder"
+  
+  creativity: 0.93
+  num_design_rounds: 200
+  samples_per_round: 10
+  
+  hotspot_indices: [58, 49, 98, 39]
+
+  covalent_mode: deferred
+  covalent:
+    ligand:
+      id: C
+      ccd: "GUANG"
+    receptor_bond:
+      atom1: [A, 58, CA]
+      atom2: [C, 1, C8]
+    binder_ligand_atom: [C, 1, C12]
+    binder_atom: CA
+    mutate_to: G
+    attach_site_method: ca_window
+    attach_ca_min: 10.0
+    attach_ca_max: 16.0
+    protected_ligands: ["GUANG"]
+  
+  losses:
+    rg_loss:
+      enabled: true
+      weight: 1.0
+    helix_loss:
+      enabled: true
+      weight: 0.1
+    hotspot_loss:
+      enabled: true
+      weight: 1.0
+  
+  msa:
+    max_seqs: 2560
+  
+  output:
+    dir: "./output/pdl1_designs_guang"

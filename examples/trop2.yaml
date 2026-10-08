@@ -1,0 +1,39 @@
+version: 1
+
+sequences:
+  - protein:
+      id: A
+      sequence: "DNCTCPTNKMTVCSPDGPGGRCQCRALGSGMAVDCSTLTSKCLLLKARMSAPKNARTLVRPSEHALVDNDGLYDPDCDPEGRFKARQCNQTSVCWCVNSVGVRRTDKGDLSLRCDELVRTHHILIDLRHRPTAGAFNHSDLDAELRRLFRERYRLHPKFVAAVHYEQPTIQIELRQNTSQKAAGDVDIGDAAYYFERDIKGESLFQGRGGLDLRVRGEPLQVERTLIYYLDEIPPKF"
+      msa: "msa/trop2.a3m"
+  
+  - protein:
+      id: B
+      sequence: "AEAKYAKEMIFAVGEIYNLPNLTHGQIMAFIAALKDDPSQSSELLSEAKKLNDSQAPKAEAKYAKEAVGEIYNLGAAEFK"
+
+dream:
+  receptor_chains: [A]
+  binder_chains: [B]
+  design_type: "binder"
+  
+  creativity: 0.9
+  num_design_rounds: 10
+  samples_per_round: 10
+  
+  hotspot_indices: [124, 228]
+  
+  losses:
+    rg_loss:
+      enabled: true
+      weight: 1.0
+    helix_loss:
+      enabled: true
+      weight: 0.01
+    hotspot_loss:
+      enabled: true
+      weight: 2.0
+  
+  msa:
+    max_seqs: 2560
+  
+  output:
+    dir: "./paper_test_output/trop2"

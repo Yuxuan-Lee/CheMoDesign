@@ -1,0 +1,52 @@
+version: 1
+
+sequences:
+  - protein:
+      id: B
+      sequence: "QAEEWYFGKITRRESERLLLNPENPRGTFLVRESETTKGAYCLSVSDFDNAKGLNVKHYKIRKLDSGGFYITSRTQFSSLQQLVAYYSKHADGLCHRLTNVCPT"
+      msa: "msa/src.a3m"
+  
+  - protein:
+      id: A
+      sequence: "AEAKYAKEMIFAVGEIYNLPNLTHGQIMAGIKAEAKYAKEAVGEIYNLGAAEFKMAFIAALKDDPSQSSELLSEAKKLND"
+  
+  - ligand:
+      id: C
+      ccd: "PTYU"
+
+constraints:
+  - bond:
+      atom1: [A, 30, CA]
+      atom2: [C, 1, C1]
+  
+
+dream:
+  receptor_chains: [B]
+  binder_chains: [A]
+  design_type: "binder"
+  
+  creativity: 0.9
+  num_design_rounds: 10
+  samples_per_round: 10
+  
+  hotspot_indices: [59, 60]
+  
+  protected_regions:
+    protected_ligands: ["PTYU"]
+  
+  losses:
+    rg_loss:
+      enabled: true
+      weight: 1.0
+    helix_loss:
+      enabled: true
+      weight: 0.5
+    hotspot_loss:
+      enabled: true
+      weight: 1.0
+  
+  msa:
+    max_seqs: 10000
+  
+  output:
+    dir: "./output/src_ptyu_outputs"

@@ -1,0 +1,52 @@
+version: 1
+
+sequences:
+  - protein:
+      id: B
+      sequence: "ERVFAAEALLKRRIRKGRMEYLVKWKGWSQKYSTWEPEENILDARLLAAFEERE"
+      msa: "msa/cbx8.a3m"
+  
+  - protein:
+      id: A
+      sequence: "AEAKYAKEMIFAVGEIYNLPNLTHGQIMAGIKAEAKYAKEAVGEIYNLGAAEFKMAFIAALKDDPSQSSELLSEAKKLND"
+  
+  - ligand:
+      id: C
+      ccd: "K3ME"
+
+constraints:
+  - bond:
+      atom1: [A, 30, CA]
+      atom2: [C, 1, C1]
+  
+
+dream:
+  receptor_chains: [B]
+  binder_chains: [A]
+  design_type: "binder"
+  
+  creativity: 0.9
+  num_design_rounds: 10
+  samples_per_round: 10
+  
+  hotspot_indices: [36, 41]
+  
+  protected_regions:
+    protected_ligands: ["K3ME"]
+  
+  losses:
+    rg_loss:
+      enabled: true
+      weight: 1.0
+    helix_loss:
+      enabled: true
+      weight: 0.5
+    hotspot_loss:
+      enabled: true
+      weight: 1.0
+  
+  msa:
+    max_seqs: 10000
+  
+  output:
+    dir: "./output/cbx8_k3me_outputs"

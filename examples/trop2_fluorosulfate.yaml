@@ -1,0 +1,56 @@
+version: 1
+
+sequences:
+  - protein:
+      id: A
+      sequence: "DNCTCPTNKMTVCSPDGPGGRCQCRALGSGMAVDCSTLTSKCLLLKARMSAPKNARTLVRPSEHALVDNDGLYDPDCDPEGRFKARQCNQTSVCWCVNSVGVRRTDKGDLSLRCDELVRTGHILIDLRHRPTAGAFNHSDLDAELRRLFRERYRLHPKFVAAVHYEQPTIQIELRQNTSQKAAGDVDIGDAAYYFERDIKGESLFQGRGGLDLRVRGEPLQVERTLIYYLDEIPPKF"
+      msa: "msa/trop2_fluorosulfate.a3m"
+  
+  - protein:
+      id: B
+      sequence: "VVRHTVVGGPAEMIFAVGEIYNLPNLTHGQIMAFIAALKDDPSQSSELLSEAKKLNDSQAPK"
+
+
+dream:
+  receptor_chains: [A]
+  binder_chains: [B]
+  design_type: "binder"
+  
+  creativity: 0.9
+  num_design_rounds: 300
+  samples_per_round: 100
+  
+  hotspot_indices: [121, 124]
+
+  covalent_mode: deferred
+  covalent:
+    ligand:
+      id: C
+      ccd: "FSYH"
+    receptor_bond:
+      atom1: [A, 121, CA]
+      atom2: [C, 1, C10]
+    binder_ligand_atom: [C, 1, C5]
+    binder_atom: CA
+    mutate_to: G
+    attach_site_method: ca_window
+    attach_ca_min: 8.0
+    attach_ca_max: 12.0
+    protected_ligands: ["FSYH"]
+  
+  losses:
+    rg_loss:
+      enabled: true
+      weight: 1.0
+    helix_loss:
+      enabled: true
+      weight: 0.01
+    hotspot_loss:
+      enabled: true
+      weight: 1.0
+  
+  msa:
+    max_seqs: 10000
+  
+  output:
+    dir: "./output/trop2_design_fsy_h121_300x100"

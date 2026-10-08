@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dream-boltz2"
+version = "1.0.0"
+description = "Dream and wake protein backbones on a frozen Boltz-2 model."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.0",
+    "numpy",
+    "biopython",
+    "pyyaml",
+    "pandas",
+]
+
+[project.scripts]
+chemo-campaign = "dream_boltz2.cli.campaign:main"
+chemo-design = "dream_boltz2.cli.design:main"
+chemo-wake = "dream_boltz2.cli.wake:main"
+chemo-screen = "dream_boltz2.cli.screen:main"
+chemo-sequences = "dream_boltz2.cli.sequences:main"
+chemo-cluster-tm = "dream_boltz2.cli.cluster_tm:main"
+chemo-af3-json = "dream_boltz2.cli.af3_json:main"
+
+[tool.setuptools.packages.find]
+include = ["dream_boltz2*"]
