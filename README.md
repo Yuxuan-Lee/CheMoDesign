@@ -4,7 +4,7 @@ This program is still under construction.
 
 ## Contributors
 
-1. liutao
+1. [Yuxuan Li](https://github.com/Yuxuan-Lee)
 2. [Jing](https://github.com/Fred-Jing)
 3. [Yeyu Su](https://github.com/YeyuSu)
 4. Cursor Agent
