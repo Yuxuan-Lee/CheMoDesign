@@ -7,7 +7,7 @@ This program is still under construction.
 1. [Yuxuan Li](https://github.com/Yuxuan-Lee)
 2. [Jing](https://github.com/Fred-Jing)
 3. [Yeyu Su](https://github.com/YeyuSu)
-4. Cursor Agent
+4. [Cursor Agent](https://github.com/cursor)
 
 CheMoDesign backbone generation and sequence-conditioned refinement on frozen Boltz-2 (v2.2.0). Model weights stay frozen. Pair entries are scaled as `z_ij -> (1 - alpha) z_ij`. Receptor-receptor pairs and functional anchors (hotspots, and every pair that touches an atom-level chemical component) are left unscaled and are not updated. A geometric loss (radius of gyration, helix content, hotspot contacts) is backpropagated through one denoising step.
 
