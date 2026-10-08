@@ -60,5 +60,3 @@ The same steps can still be called one at a time (`cli.design`, `cli.screen`, `c
 ## Examples
 
 `examples/` holds the five-target benchmark inputs (`pd_l1.yaml`, `il2ra.yaml`, `il7ra.yaml`, `trop2.yaml`, `b7h3.yaml`), the three PTM recovery inputs (`brd4_acetyllysine.yaml`, `cbx8_trimethyllysine.yaml`, `src_phosphotyrosine.yaml`), and the prospective campaigns (`thrombin_sulfotyrosine.yaml`, `il7ra_tetrazine.yaml`, `zspa1_pbpa.yaml`, `trop2_fluorosulfate.yaml`, `her2_nitrotyrosine.yaml`, `caix_sulfonamide.yaml`, `pd_l1_cmn.yaml`).
-
-Functional-group RMSD after receptor superposition is not implemented here. Soft-token chemistry mixing is not part of this release.
