@@ -17,11 +17,7 @@ def _resolve_ligandmpnn_path() -> str:
     env = os.environ.get("LIGANDMPNN_DIR")
     if env:
         return env
-    project_root = Path(__file__).resolve().parents[2]
-    bundled = project_root / "third_party" / "LigandMPNN"
-    if (bundled / "run.py").is_file():
-        return str(bundled)
-    return str(project_root / "external" / "LigandMPNN")
+    return str(Path(__file__).resolve().parents[2] / "third_party" / "LigandMPNN")
 
 
 ligandmpnn_path = _resolve_ligandmpnn_path()

@@ -287,8 +287,7 @@ sequences:
         self.mol_dir = resolve_mol_dir(cache_dir)
         if not (self.mol_dir / "ALA.pkl").is_file():
             raise FileNotFoundError(
-                "Boltz-2 molecule library not found "
-                f"(looked for {self.mol_dir / 'ALA.pkl'}). "
+                "Boltz-2 molecule library not found at third_party/boltz/mols/ALA.pkl. "
                 "Run: python -m dream_boltz2.cli.setup_data"
             )
 

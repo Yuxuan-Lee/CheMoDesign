@@ -252,7 +252,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument(
         "--checkpoint",
         default=default_ckpt,
-        help="Boltz-2 checkpoint. Default: $BOLTZ_CHECKPOINT, else third_party/boltz or ~/.boltz.",
+        help="Boltz-2 checkpoint. Default: third_party/boltz/boltz2_conf.ckpt.",
     )
     parser.add_argument(
         "--out",

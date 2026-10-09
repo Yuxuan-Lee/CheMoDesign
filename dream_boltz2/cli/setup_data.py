@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import tarfile
 from pathlib import Path
@@ -38,7 +39,8 @@ def _overlay_ligands(src: Path, mol_dir: Path) -> int:
 def setup(repo: str = DATA_REPO) -> Path:
     dest = bundled_boltz_dir()
     dest.mkdir(parents=True, exist_ok=True)
-    print(f"Data directory: {dest}")
+    os.environ.setdefault("HF_HUB_CACHE", str(dest / ".hf_cache"))
+    print(f"Data directory: {dest.relative_to(project_root())}")
     print(f"Downloading from https://huggingface.co/datasets/{repo}")
 
     ckpt = dest / "boltz2_conf.ckpt"

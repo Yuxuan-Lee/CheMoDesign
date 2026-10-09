@@ -45,7 +45,17 @@ pip install -e .
 python -m dream_boltz2.cli.setup_data
 ```
 
-`setup_data` writes `third_party/boltz/boltz2_conf.ckpt` and `third_party/boltz/mols/`, then copies the example ligands into that molecule library. Boltz-2 does not need `ccd.pkl`. An existing `~/.boltz` cache is used when the data pack has not been downloaded. Set `BOLTZ_SRC` only when `import boltz` is not already available. Set `LIGANDMPNN_DIR` only to replace the bundled LigandMPNN. `--model_type protein_mpnn` or `soluble_mpnn` selects those bundled weights.
+`setup_data` downloads into this repository, and the program reads those paths:
+
+```
+third_party/boltz/boltz2_conf.ckpt
+third_party/boltz/mols/
+third_party/LigandMPNN/model_params/
+examples/ligands/
+examples/msa/
+```
+
+Example ligands are copied into `third_party/boltz/mols/` after download. Boltz-2 does not need `ccd.pkl`. `BOLTZ_SRC` is only for a Boltz checkout that is not installed. `--model_type protein_mpnn` or `soluble_mpnn` selects the weights already in `third_party/LigandMPNN`.
 
 MSA paths in the YAML files are relative to the YAML (`msa/<target>.a3m`). The parser resolves them from the file location, so the examples run from this directory without the original cluster paths. Custom ligands in `examples/ligands/` are loaded ahead of the Boltz molecule cache.
 
