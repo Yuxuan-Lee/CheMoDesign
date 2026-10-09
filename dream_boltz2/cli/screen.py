@@ -5,8 +5,6 @@ import os
 import sys
 import argparse
 import shutil
-import subprocess
-import tempfile
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
@@ -58,7 +56,7 @@ class ScreeningResult:
     passed_directional_coverage_filter: bool = False
     passed_rg_filter: bool = False
     passed_overall: bool = False
-    method: str = 'DSSP'  # 'DSSP' or 'Phi-Psi'
+    method: str = 'MDTraj-DSSP'
     error: Optional[str] = None
 
 
@@ -223,42 +221,6 @@ class PDBParser:
         except Exception as e:
             print(f" [WARN] readCIFfile {Path(cif_file).name} failed: {e}")
             return {}
-    
-    @staticmethod
-    def get_backbone_atoms(chains: Dict[str, List[Dict]], chain_id: str) -> Dict[int, Dict]:
-        """get backbone atoms."""
-        backbone = defaultdict(dict)
-        
-        for atom in chains.get(chain_id, []):
-            if atom['atom_name'] in ['N', 'CA', 'C', 'O']:
-                res_num = atom['res_num']
-                backbone[res_num][atom['atom_name']] = np.array([atom['x'], atom['y'], atom['z']])
-        
-        
-        complete_residues = {
-            res_num: atoms for res_num, atoms in backbone.items()
-            if all(atom in atoms for atom in ['N', 'CA', 'C'])
-        }
-        
-        return complete_residues
-    
-    @staticmethod
-    def calculate_dihedral(p1, p2, p3, p4):
-        """calculate dihedral."""
-        b1 = p2 - p1
-        b2 = p3 - p2
-        b3 = p4 - p3
-        
-        n1 = np.cross(b1, b2)
-        n2 = np.cross(b2, b3)
-        
-        m1 = np.cross(n1, b2 / np.linalg.norm(b2))
-        
-        x = np.dot(n1, n2)
-        y = np.dot(m1, n2)
-        
-        angle = np.degrees(np.arctan2(y, x))
-        return angle
 
 
 class SecondaryStructureCalculator:
@@ -268,11 +230,6 @@ class SecondaryStructureCalculator:
     def has_mdtraj() -> bool:
         """has mdtraj."""
         return HAS_MDTRAJ
-    
-    @staticmethod
-    def has_dssp() -> bool:
-        """has dssp."""
-        return shutil.which('dssp') is not None or shutil.which('mkdssp') is not None
     
     @staticmethod
     def run_mdtraj_dssp(pdb_file: str, chain_id: str = None) -> Optional[Dict[str, float]]:
@@ -305,11 +262,12 @@ class SecondaryStructureCalculator:
             
             
             ss_counts = {'H': 0, 'E': 0, 'C': 0}
+            total = 0
             for ss in ss_to_count:
-                if ss in ss_counts:
-                    ss_counts[ss] += 1
-            
-            total = len(ss_to_count)
+                label = ss.decode("ascii") if isinstance(ss, (bytes, bytearray)) else str(ss)
+                if label in ss_counts:
+                    ss_counts[label] += 1
+                    total += 1
             if total == 0:
                 return None
             
@@ -323,184 +281,6 @@ class SecondaryStructureCalculator:
             print(f"[WARN] MDTraj DSSP failed: {e}")
             return None
     
-    @staticmethod
-    def run_dssp(pdb_file: str, chain_id: str = None) -> Optional[Dict[str, float]]:
-        """run dssp."""
-        dssp_cmd = 'dssp' if shutil.which('dssp') else 'mkdssp'
-        
-        try:
-            
-            temp_pdb = None
-            if chain_id:
-                temp_pdb = tempfile.NamedTemporaryFile(mode='w', suffix='.pdb', delete=False)
-                with open(pdb_file, 'r') as f:
-                    for line in f:
-                        if line.startswith('ATOM') or line.startswith('HETATM'):
-                            if len(line) > 21 and line[21] == chain_id:
-                                temp_pdb.write(line)
-                        elif line.startswith('TER') or line.startswith('END'):
-                            temp_pdb.write(line)
-                temp_pdb.close()
-                input_file = temp_pdb.name
-            else:
-                input_file = pdb_file
-            
-            result = subprocess.run(
-                [dssp_cmd, input_file],
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            
-            
-            if temp_pdb:
-                try:
-                    os.unlink(temp_pdb.name)
-                except:
-                    pass
-            
-            if result.returncode != 0:
-                return None
-            
-            
-            ss_counts = {'H': 0, 'E': 0, 'C': 0}  # Helix, Sheet, Coil/Loop
-            total = 0
-            
-            in_data = False
-            for line in result.stdout.split('\n'):
-                if line.startswith('  #  RESIDUE'):
-                    in_data = True
-                    continue
-                
-                if in_data and len(line) > 16:
-                    ss = line[16]
-                    if ss in 'HGI':  # α-helix, 3-10 helix, π-helix
-                        ss_counts['H'] += 1
-                        total += 1
-                    elif ss in 'EB':  # β-sheet, β-bridge
-                        ss_counts['E'] += 1
-                        total += 1
-                    elif ss in ' TC':  # Loop/Coil/Turn
-                        ss_counts['C'] += 1
-                        total += 1
-            
-            if total == 0:
-                return None
-            
-            return {
-                'helix': ss_counts['H'] / total * 100,
-                'sheet': ss_counts['E'] / total * 100,
-                'loop': ss_counts['C'] / total * 100
-            }
-        
-        except Exception as e:
-            print(f"[WARN] DSSP execution failed: {e}")
-            
-            if temp_pdb:
-                try:
-                    os.unlink(temp_pdb.name)
-                except:
-                    pass
-            return None
-    
-    @staticmethod
-    def calculate_phi_psi(backbone: Dict[int, Dict]) -> Dict[int, Tuple[float, float]]:
-        """calculate phi psi."""
-        residues = sorted(backbone.keys())
-        phi_psi = {}
-        
-        for i, res_num in enumerate(residues):
-            phi = psi = None
-            
-            
-            if i > 0:
-                prev_res = residues[i-1]
-                if 'C' in backbone[prev_res] and all(atom in backbone[res_num] for atom in ['N', 'CA', 'C']):
-                    phi = PDBParser.calculate_dihedral(
-                        backbone[prev_res]['C'],
-                        backbone[res_num]['N'],
-                        backbone[res_num]['CA'],
-                        backbone[res_num]['C']
-                    )
-            
-            
-            if i < len(residues) - 1:
-                next_res = residues[i+1]
-                if all(atom in backbone[res_num] for atom in ['N', 'CA', 'C']) and 'N' in backbone[next_res]:
-                    psi = PDBParser.calculate_dihedral(
-                        backbone[res_num]['N'],
-                        backbone[res_num]['CA'],
-                        backbone[res_num]['C'],
-                        backbone[next_res]['N']
-                    )
-            
-            if phi is not None and psi is not None:
-                phi_psi[res_num] = (phi, psi)
-        
-        return phi_psi
-    
-    @staticmethod
-    def classify_ss_from_phi_psi(phi: float, psi: float) -> str:
-        """classify ss from phi psi."""
-        # α-helix region: phi ~ -60°±30°, psi ~ -45°±30°
-        
-        if -100 < phi < -30 and -80 < psi < 50:
-            return 'H'
-        
-        # β-sheet region
-        
-        
-        
-        elif phi <= -100 and 50 <= psi <= 180:
-            return 'E'
-        elif -100 < phi <= -70 and 90 < psi < 140:
-            return 'E'
-        
-        
-        elif phi <= -100 and -180 < psi < -100:
-            return 'E'
-        
-        
-        
-        
-        elif 50 < phi < 180 and -180 < psi < -100:
-            return 'E'
-        elif 50 < phi < 180 and -100 < psi < -50:
-            return 'E'
-        
-        # Left-handed helix (rare, mainly GLY, PRO)
-        
-        elif 30 < phi < 100 and -60 < psi < 60:
-            return 'H'
-        
-        # Everything else is loop/coil (turns, bends, etc.)
-        else:
-            return 'C'
-    
-    @staticmethod
-    def calculate_ss_phi_psi(backbone: Dict[int, Dict]) -> Dict[str, float]:
-        """calculate ss phi psi."""
-        phi_psi = SecondaryStructureCalculator.calculate_phi_psi(backbone)
-        
-        if not phi_psi:
-            return {'helix': 0, 'sheet': 0, 'loop': 100}
-        
-        ss_counts = {'H': 0, 'E': 0, 'C': 0}
-        
-        for phi, psi in phi_psi.values():
-            ss = SecondaryStructureCalculator.classify_ss_from_phi_psi(phi, psi)
-            if ss in ss_counts:
-                ss_counts[ss] += 1
-        
-        total = sum(ss_counts.values())
-        if total == 0:
-            return {'helix': 0, 'sheet': 0, 'loop': 100}
-        
-        return {
-            'helix': ss_counts['H'] / total * 100,
-            'sheet': ss_counts['E'] / total * 100,
-            'loop': ss_counts['C'] / total * 100
-        }
 
 
 class LigandCoverageCalculator:
@@ -815,26 +595,18 @@ def screen_single_pdb(args: Tuple) -> ScreeningResult:
         
         
         ss_calc = SecondaryStructureCalculator()
-        method = 'Unknown'
-        ss_result = None
-        
-        
-        if ss_calc.has_mdtraj():
-            ss_result = ss_calc.run_mdtraj_dssp(str(pdb_file), chain_id=binder_chain_id)
-            if ss_result:
-                method = 'MDTraj-DSSP'
-        
-        
-        if ss_result is None and ss_calc.has_dssp():
-            ss_result = ss_calc.run_dssp(str(pdb_file), chain_id=binder_chain_id)
-            if ss_result:
-                method = 'DSSP'
-        
-        
+        ss_result = ss_calc.run_mdtraj_dssp(str(pdb_file), chain_id=binder_chain_id)
         if ss_result is None:
-            backbone = parser.get_backbone_atoms(chains, binder_chain_id)
-            ss_result = ss_calc.calculate_ss_phi_psi(backbone)
-            method = 'Phi-Psi-v1.6'
+            return ScreeningResult(
+                pdb_file=str(pdb_file), task_id='', helix_pct=0, sheet_pct=0, loop_pct=0,
+                n_binder_residues=0, n_contacting_residues=0,
+                min_distance_to_hotspot=999, avg_distance_to_hotspot=999,
+                n_clash_atoms=0, clash_ratio=0.0,
+                passed_ss_filter=False, passed_proximity_filter=False, passed_clash_filter=False,
+                passed_overall=False, method='MDTraj-DSSP',
+                error='MDTraj DSSP failed. Install mdtraj; other secondary-structure methods are not used.',
+            )
+        method = 'MDTraj-DSSP'
         
         helix_pct = ss_result['helix']
         sheet_pct = ss_result['sheet']
@@ -1260,16 +1032,11 @@ Important:
         sys.exit(1)
     
     
-    ss_calc = SecondaryStructureCalculator()
-    if ss_calc.has_mdtraj():
-        print("[OK] MDTraj detected, will use MDTraj-DSSP (accuracy 95-98%, PyMOL-equivalent)")
-        print("     Method: Pure Python DSSP implementation, no external programs needed")
-    elif ss_calc.has_dssp():
-        print("[OK] DSSP detected, will use external DSSP program (high accuracy)")
-    else:
-        print("[WARN] MDTraj/DSSP not detected, will use Phi-Psi v1.6 method")
-        print("       Accuracy: ~85% (may miss left-handed beta-sheets)")
-        print("       Recommended: mamba install -c conda-forge mdtraj")
+    if not SecondaryStructureCalculator.has_mdtraj():
+        print("[ERROR] MDTraj is required for DSSP secondary-structure assignment.")
+        print("        Install it with: pip install mdtraj")
+        sys.exit(1)
+    print("[OK] Secondary structure: MDTraj DSSP")
     
     
     n_processes = args.processes if args.processes else max(1, cpu_count() - 1)
