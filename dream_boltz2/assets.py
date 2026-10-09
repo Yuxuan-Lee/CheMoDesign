@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-DATA_REPO = "Yuxuan-Lee/CheMoDesign-data"
+DATA_REPO = "Yuxuan-Li/CheMoDesign-data"
 
 
 def project_root() -> Path:
