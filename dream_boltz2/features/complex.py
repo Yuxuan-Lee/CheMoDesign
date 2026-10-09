@@ -280,15 +280,26 @@ sequences:
         from pathlib import Path
         
         print("[FeaturePrep] Initializing Boltz2 components (first time)...")
-        
-        
-        cache_dir = self._find_cache_dir()
-        
-        
-        ccd_path = cache_dir / "ccd.pkl"
-        with open(ccd_path, 'rb') as f:
-            self.ccd = pickle.load(f)
-        print(f"   [OK] CCD loaded ({len(self.ccd)} entries)")
+
+        from dream_boltz2.assets import resolve_boltz_cache, resolve_ccd_pkl, resolve_mol_dir
+
+        cache_dir = resolve_boltz_cache()
+        self.mol_dir = resolve_mol_dir(cache_dir)
+        if not (self.mol_dir / "ALA.pkl").is_file():
+            raise FileNotFoundError(
+                "Boltz-2 molecule library not found "
+                f"(looked for {self.mol_dir / 'ALA.pkl'}). "
+                "Run: python -m dream_boltz2.cli.setup_data"
+            )
+
+        ccd_path = resolve_ccd_pkl(cache_dir)
+        if ccd_path is not None:
+            with open(ccd_path, "rb") as f:
+                self.ccd = pickle.load(f)
+            print(f"   [OK] CCD loaded ({len(self.ccd)} entries) from {ccd_path}")
+        else:
+            self.ccd = {}
+            print("   [OK] No ccd.pkl; components load from the molecule library")
 
         self._bundled_mols = {}
         ligand_dir = Path(__file__).resolve().parents[2] / "examples" / "ligands"
@@ -301,9 +312,6 @@ sequences:
             if self._bundled_mols:
                 print(f"   [OK] Bundled ligands: {', '.join(sorted(self._bundled_mols))}")
 
-        self.mol_dir = cache_dir / "mols"
-        
-        
         from boltz.data.mol import load_canonicals, load_molecules
         self.canonicals = load_canonicals(self.mol_dir)
         
@@ -377,39 +385,17 @@ sequences:
         print(f"   [OK] Tokenizer and Featurizer created")
     
     def _find_cache_dir(self):
-        """ find cache dir."""
-        from pathlib import Path
-        
-        possible_paths = [
-            Path.home() / ".boltz" / "checkpoints",
-            Path.home() / ".boltz" / "data",
-            Path.home() / ".boltz",
-        ]
-        
-        for path in possible_paths:
-            if (path / "ccd.pkl").exists():
-                print(f"   [OK] Found Boltz cache: {path}")
-                
-                mols_dir = path / "mols"
-                if mols_dir.exists():
-                    num_mols = len(list(mols_dir.glob("*.pkl")))
-                    print(f"   [OK] Found mols directory: {num_mols} molecule files")
-                else:
-                    print(f"   [WARNING] mols directory not found: {mols_dir}")
-                return path
-        
-        
-        print(f"   [ERROR] Cannot find Boltz cache directory!")
-        print(f"   [INFO] Searched paths:")
-        for path in possible_paths:
-            ccd_exists = (path / "ccd.pkl").exists() if path.exists() else False
-            print(f"          - {path}")
-            print(f"            exists: {path.exists()}, has ccd.pkl: {ccd_exists}")
-        
-        raise FileNotFoundError(
-            "Cannot find Boltz cache directory with ccd.pkl. "
-            "Please ensure Boltz2 is properly installed."
-        )
+        """Return the Boltz cache that contains the molecule library."""
+        from dream_boltz2.assets import resolve_boltz_cache, resolve_mol_dir
+
+        cache = resolve_boltz_cache()
+        mols_dir = resolve_mol_dir(cache)
+        print(f"   [OK] Boltz cache: {cache}")
+        if mols_dir.is_dir():
+            print(f"   [OK] Molecule library: {mols_dir}")
+        else:
+            print(f"   [WARNING] Molecule library not found: {mols_dir}")
+        return cache
     
     def _generate_complex_features_with_msa(
         self,

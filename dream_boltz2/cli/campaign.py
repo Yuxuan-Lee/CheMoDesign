@@ -28,6 +28,7 @@ from typing import List, Optional, Sequence
 
 import yaml
 
+from dream_boltz2.assets import resolve_checkpoint
 from dream_boltz2.config import parse_dream_config
 from dream_boltz2.covalent.deferred import is_covalent_deferred
 
@@ -59,13 +60,8 @@ def _project_root() -> Path:
 
 
 def _default_checkpoint() -> Optional[str]:
-    env = os.environ.get("BOLTZ_CHECKPOINT")
-    if env:
-        return env
-    candidate = Path.home() / ".boltz" / "checkpoints" / "boltz2_conf.ckpt"
-    if candidate.is_file():
-        return str(candidate)
-    return None
+    path = resolve_checkpoint()
+    return str(path) if path is not None else None
 
 
 def _hotspots_from_config(receptor_chain: str, indices: Sequence[int]) -> str:
@@ -256,7 +252,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument(
         "--checkpoint",
         default=default_ckpt,
-        help="Boltz-2 checkpoint. Default: $BOLTZ_CHECKPOINT, else ~/.boltz/checkpoints/boltz2_conf.ckpt.",
+        help="Boltz-2 checkpoint. Default: $BOLTZ_CHECKPOINT, else third_party/boltz or ~/.boltz.",
     )
     parser.add_argument(
         "--out",
@@ -335,8 +331,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 2
     if not args.checkpoint:
         print(
-            "Pass --checkpoint, or set BOLTZ_CHECKPOINT. "
-            "No ~/.boltz/checkpoints/boltz2_conf.ckpt was found.",
+            "Pass --checkpoint, or run: python -m dream_boltz2.cli.setup_data",
             file=sys.stderr,
         )
         return 2

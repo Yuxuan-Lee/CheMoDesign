@@ -6,3 +6,4 @@ output/
 logs/
 runs/
 .pytest_cache/
+third_party/boltz/

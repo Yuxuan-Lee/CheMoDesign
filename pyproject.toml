@@ -14,9 +14,12 @@ dependencies = [
     "biopython",
     "pyyaml",
     "pandas",
+    "huggingface_hub",
+    "prody",
 ]
 
 [project.scripts]
+chemo-setup = "dream_boltz2.cli.setup_data:main"
 chemo-campaign = "dream_boltz2.cli.campaign:main"
 chemo-design = "dream_boltz2.cli.design:main"
 chemo-wake = "dream_boltz2.cli.wake:main"

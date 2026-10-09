@@ -35,7 +35,17 @@ examples/msa/           receptor a3m files, referenced from each YAML
 examples/ligands/       custom CCD pickles (KACU, K3ME, PTYU, TYS, TET2, BPUAA, FSYH, NITRO, SULF, GUANG)
 ```
 
-Boltz-2 and LigandMPNN are external. Set `BOLTZ_SRC` to a Boltz checkout `src/` directory when `import boltz` is not already available. Set `LIGANDMPNN_DIR` to a LigandMPNN checkout that contains `run.py` and `model_params/proteinmpnn_v_48_020.pt`, `solublempnn_v_48_020.pt`, and `ligandmpnn_v_32_020_25.pt`. Use `--model_type protein_mpnn` or `soluble_mpnn` to select those weights.
+## Setup
+
+Install Boltz 2.2.0 (Python 3.10–3.12), then download the weights and molecule library. The data pack also contains the noncanonical ligands used in `examples/` (BPUAA, FSYH, GUANG, K3ME, KACU, NITRO, PTYU, SULF, TET2, TYS). LigandMPNN and its three checkpoints are already in `third_party/LigandMPNN`.
+
+```bash
+pip install "boltz==2.2.0" prody
+pip install -e .
+python -m dream_boltz2.cli.setup_data
+```
+
+`setup_data` writes `third_party/boltz/boltz2_conf.ckpt` and `third_party/boltz/mols/`, then copies the example ligands into that molecule library. Boltz-2 does not need `ccd.pkl`. An existing `~/.boltz` cache is used when the data pack has not been downloaded. Set `BOLTZ_SRC` only when `import boltz` is not already available. Set `LIGANDMPNN_DIR` only to replace the bundled LigandMPNN. `--model_type protein_mpnn` or `soluble_mpnn` selects those bundled weights.
 
 MSA paths in the YAML files are relative to the YAML (`msa/<target>.a3m`). The parser resolves them from the file location, so the examples run from this directory without the original cluster paths. Custom ligands in `examples/ligands/` are loaded ahead of the Boltz molecule cache.
 
@@ -45,9 +55,8 @@ One campaign command runs the manuscript order: dream, screen, wake (sigma 20), 
 
 ```bash
 export PYTHONPATH=/path/to/DREAM-Boltz2-harness:${PYTHONPATH}
-export BOLTZ_SRC=/path/to/boltz/src
 
-./campaign.sh --config examples/pd_l1.yaml --checkpoint /path/to/boltz2.ckpt
+./campaign.sh --config examples/pd_l1.yaml
 ./campaign.sh --config examples/trop2_fluorosulfate.yaml --num-samples 2 --top-n 2
 ./campaign.sh --config examples/thrombin_sulfotyrosine.yaml --skip-wake
 ./campaign.sh --config examples/pd_l1.yaml --from wake --to screen_wake --dry-run

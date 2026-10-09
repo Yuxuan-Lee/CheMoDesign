@@ -17,8 +17,11 @@ def _resolve_ligandmpnn_path() -> str:
     env = os.environ.get("LIGANDMPNN_DIR")
     if env:
         return env
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    return os.path.join(project_root, "external", "LigandMPNN")
+    project_root = Path(__file__).resolve().parents[2]
+    bundled = project_root / "third_party" / "LigandMPNN"
+    if (bundled / "run.py").is_file():
+        return str(bundled)
+    return str(project_root / "external" / "LigandMPNN")
 
 
 ligandmpnn_path = _resolve_ligandmpnn_path()
@@ -31,25 +34,12 @@ try:
     from run import main as ligandmpnn_main
 except ImportError as e:
     error_msg = str(e)
-    print(f"[WARNING] no LigandMPNN: {error_msg}")
-    print(f" LigandMPNN: {ligandmpnn_path}")
-    
-    
-    if "prody" in error_msg.lower() or "No module named 'prody'" in error_msg:
-        print(f"\n[ERROR]: prody")
-        print(f" prody:")
-        print(f"   pip install prody")
-        print(f" oruseconda:")
-        print(f"   conda install -c conda-forge prody")
-    elif "No module named 'run'" in error_msg or not os.path.exists(ligandmpnn_path):
-        print(f"\n[ERROR] LigandMPNN notto")
-        print(f" LigandMPNN alreadyto: {ligandmpnn_path}")
-    else:
-        print(f"\n[ERROR] failed: {error_msg}")
-        print(f" check LigandMPNN whetheralready:")
-        print(f"   - prody: pip install prody")
-        print(f"   - torch: pip install torch")
-        print(f"   - numpy: pip install numpy")
+    print(f"[WARNING] LigandMPNN import failed: {error_msg}")
+    print(f"Looked in: {ligandmpnn_path}")
+    if "prody" in error_msg.lower():
+        print("Install prody: pip install prody")
+    elif not os.path.exists(ligandmpnn_path):
+        print("The bundled copy should be at third_party/LigandMPNN.")
     
     ligandmpnn_main = None
 
