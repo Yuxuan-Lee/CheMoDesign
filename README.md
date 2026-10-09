@@ -40,7 +40,7 @@ examples/ligands/       custom CCD pickles (KACU, K3ME, PTYU, TYS, TET2, BPUAA, 
 Install Boltz 2.2.0 (Python 3.10–3.12), then download the weights and molecule library. The data pack also contains the noncanonical ligands used in `examples/` (BPUAA, FSYH, GUANG, K3ME, KACU, NITRO, PTYU, SULF, TET2, TYS). LigandMPNN and its three checkpoints are already in `third_party/LigandMPNN`.
 
 ```bash
-pip install "boltz==2.2.0" prody
+pip install "boltz==2.2.0" prody mdtraj
 pip install -e .
 python -m dream_boltz2.cli.setup_data
 ```
@@ -56,6 +56,8 @@ examples/msa/
 ```
 
 Example ligands are copied into `third_party/boltz/mols/` after download. Boltz-2 does not need `ccd.pkl`. `BOLTZ_SRC` is only for a Boltz checkout that is not installed. `--model_type protein_mpnn` or `soluble_mpnn` selects the weights already in `third_party/LigandMPNN`.
+
+Backbone screening assigns helix, sheet, and loop with MDTraj's DSSP (the same assignment used for the manuscript filters). MDTraj 1.10 and later carry that DSSP in Python, so a separate `dssp` or `mkdssp` binary is not required.
 
 MSA paths in the YAML files are relative to the YAML (`msa/<target>.a3m`). The parser resolves them from the file location, so the examples run from this directory without the original cluster paths. Custom ligands in `examples/ligands/` are loaded ahead of the Boltz molecule cache.
 

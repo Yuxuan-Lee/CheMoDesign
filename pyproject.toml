@@ -16,6 +16,7 @@ dependencies = [
     "pandas",
     "huggingface_hub",
     "prody",
+    "mdtraj",
 ]
 
 [project.scripts]
